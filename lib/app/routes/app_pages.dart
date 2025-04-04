@@ -83,4 +83,8 @@ class AppPages {
       binding: PermissionBinding(),
     ),
   ];
+
+  static var unknownRoute = routes.firstWhere(
+    (element) => element.name == _Paths.SPLASH,
+  );
 }
