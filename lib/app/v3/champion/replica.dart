@@ -91,21 +91,25 @@ class Replica {
     return "scc";
   }
 
-  static Future<List<TaskForReplica>> getAllTasksFromReplica() async {
+  /// Loads tasks via Rust [query_task] (GSoC qualification / Taskchampion filter API).
+  /// Use [filter] keys: `uuid`, `status`, `project`, `tags` (+/- tag syntax).
+  static Future<List<TaskForReplica>> queryTasksFromReplica(
+      Map<String, String> filter) async {
     var taskdbDirPath = await getReplicaPath();
-    List<TaskForReplica> tasks = [];
     try {
-      var res = await getAllTasksJson(taskdbDirPath: taskdbDirPath);
+      var res = await queryTask(
+          taskdbDirPath: taskdbDirPath, filter: filter);
       var map = jsonDecode(res);
-      debugPrint("Fetched from Replica: $map");
-      tasks = List<TaskForReplica>.from(map
-          .map((e) => TaskForReplica.fromJson(Map<String, dynamic>.from(e))));
-      debugPrint("Parsed from Replica: $tasks");
-    } catch (e) {
-      debugPrint("Error fetching from Replica $e");
+      return List<TaskForReplica>.from(map.map(
+          (e) => TaskForReplica.fromJson(Map<String, dynamic>.from(e))));
+    } catch (e, s) {
+      debugPrint("Error queryTasksFromReplica $e\n$s");
       return [];
     }
-    return tasks;
+  }
+
+  static Future<List<TaskForReplica>> getAllTasksFromReplica() async {
+    return queryTasksFromReplica({});
   }
 
   static Future<void> sync() async {
